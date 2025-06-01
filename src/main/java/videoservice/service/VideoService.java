@@ -99,4 +99,42 @@ public class VideoService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    public void deleteVideo(UUID id, UUID authorId) {
+        Video video = videoRepository.findById(id).orElseThrow();
+        if (!video.getAuthorId().equals(authorId)) {
+            throw new RuntimeException("You are not authorized to delete this video");
+        }
+        videoRepository.delete(video);
+    }
+
+    public void updateVideo(UUID id, VideoRequest request, UUID authorId) {
+        Video video = videoRepository.findById(id).orElseThrow();
+        if (!video.getAuthorId().equals(authorId)) {
+            throw new RuntimeException("You are not authorized to update this video");
+        }
+        video.setTitle(request.title());
+        video.setDescription(request.description());
+        video.setDuration(request.duration());
+        video.setVideoUrl(request.videoUrl());
+        video.setThumbnailUrl(request.thumbnailUrl());
+        video.setCategory(request.category());
+        videoRepository.save(video);
+    }
+
+    public List<VideoResponse> getPopularVideos(int limit) {
+        return videoRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit))
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<VideoResponse> FilterByDuration(Long duration, int limit, int offset){
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+        return videoRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .stream()
+                .filter(video -> video.getDuration() <= duration)
+                .map(this::toResponse)
+                .toList();
+    }
 }
