@@ -19,7 +19,7 @@ public class VideoController {
     private final VideoService videoService;
 
     // Создать новое видео (upload)
-    @PostMapping
+    @PostMapping("/create-new-video")
     public ResponseEntity<VideoResponse> createVideo(
             @RequestBody VideoRequest request,
             @RequestHeader("X-Author-Id") UUID authorId
@@ -55,5 +55,31 @@ public class VideoController {
     ) {
         List<VideoResponse> results = videoService.search(title, category, limit, offset);
         return ResponseEntity.ok(results);
+    }
+    @GetMapping("/by-author/{authorId}")
+    public ResponseEntity<List<VideoResponse>> getVideosByAuthor(@PathVariable UUID authorId) {
+        List<VideoResponse> videos = videoService.getVideosByAuthor(authorId);
+        return ResponseEntity.ok(videos);
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVideo(@PathVariable UUID id, @RequestHeader("X-Author-Id") UUID authorId) {
+        videoService.deleteVideo(id, authorId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateVideo(
+            @PathVariable UUID id,
+            @RequestBody VideoRequest request,
+            @RequestHeader("X-Author-Id") UUID authorId) {
+        videoService.updateVideo(id, request, authorId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<List<VideoResponse>> getPopularVideos(
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        return ResponseEntity.ok(videoService.getPopularVideos(limit));
     }
 }
