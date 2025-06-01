@@ -68,6 +68,13 @@ public class VideoService {
         }
     }
 
+    public VideoResponse getVideoBId(UUID id) {
+        Video video = videoRepository.findById(id).orElseThrow();
+        video.setViews(video.getViews() + 1);
+        videoRepository.save(video);
+        return toResponse(video);
+    }
+
 
     private VideoResponse toResponse(Video video) {
         return new VideoResponse(
@@ -84,5 +91,12 @@ public class VideoService {
                 video.getComments(),
                 video.getCreatedAt().format(formatter)
         );
+    }
+
+    public List<VideoResponse> getVideosByAuthor(UUID authorId) {
+        return videoRepository.findAllByAuthorId(authorId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 }

@@ -18,7 +18,7 @@ import videoservice.service.VideoService;
 import java.time.LocalDateTime;
 import java.util.*;
 
-class VideoServiceTest {
+public class VideoServiceTests {
 
     @Mock
     private VideoRepository videoRepository;
@@ -184,5 +184,49 @@ class VideoServiceTest {
         List<VideoResponse> results = videoService.search(null, null, limit, offset);
 
         assertEquals(1, results.size());
+    }
+
+
+    @Test
+    public void testGetVideoBIdIncrementsViewsAndReturnsResponse() {
+        UUID id = videoSample.getId();
+        when(videoRepository.findById(id)).thenReturn(Optional.of(videoSample));
+        when(videoRepository.save(any(Video.class))).thenReturn(videoSample);
+
+        VideoResponse response = videoService.getVideoBId(id);
+
+        verify(videoRepository).findById(id);
+        verify(videoRepository).save(videoSample);
+        assertEquals(101L, videoSample.getViews());
+        assertNotNull(response);
+        assertEquals(videoSample.getTitle(), response.title());
+        assertEquals(videoSample.getViews(), response.views());
+    }
+
+
+    @Test
+    public void testGetVideoBId_VideoNotFound() {
+        UUID nonExistentId = UUID.randomUUID();
+        when(videoRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> videoService.getVideoBId(nonExistentId));
+    }
+
+
+    @Test
+    public void test_getVideosByAuthor_returnsCorrectVideoResponses() {
+        UUID authorId = UUID.randomUUID();
+        List<Video> authorVideos = Arrays.asList(videoSample);
+
+        when(videoRepository.findAllByAuthorId(authorId)).thenReturn(authorVideos);
+
+        List<VideoResponse> result = videoService.getVideosByAuthor(authorId);
+
+        assertEquals(1, result.size());
+        assertEquals(videoSample.getId(), result.get(0).id());
+        assertEquals(videoSample.getTitle(), result.get(0).title());
+        assertEquals(videoSample.getAuthorId(), result.get(0).authorId());
+
+        verify(videoRepository).findAllByAuthorId(authorId);
     }
 }

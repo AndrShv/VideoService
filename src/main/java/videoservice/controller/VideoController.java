@@ -19,7 +19,7 @@ public class VideoController {
     private final VideoService videoService;
 
     // Создать новое видео (upload)
-    @PostMapping
+    @PostMapping("/create-new-video")
     public ResponseEntity<VideoResponse> createVideo(
             @RequestBody VideoRequest request,
             @RequestHeader("X-Author-Id") UUID authorId
@@ -55,5 +55,10 @@ public class VideoController {
     ) {
         List<VideoResponse> results = videoService.search(title, category, limit, offset);
         return ResponseEntity.ok(results);
+    }
+    @GetMapping("/by-author/{authorId}")
+    public ResponseEntity<List<VideoResponse>> getVideosByAuthor(@PathVariable UUID authorId) {
+        List<VideoResponse> videos = videoService.getVideosByAuthor(authorId);
+        return ResponseEntity.ok(videos);
     }
 }
