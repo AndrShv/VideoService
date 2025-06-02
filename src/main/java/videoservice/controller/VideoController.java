@@ -73,7 +73,7 @@ public class VideoController {
             @RequestBody VideoRequest request,
             @RequestHeader("X-Author-Id") UUID authorId) {
         videoService.updateVideo(id, request, authorId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/popular")

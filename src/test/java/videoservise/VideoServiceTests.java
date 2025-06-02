@@ -188,12 +188,12 @@ public class VideoServiceTests {
 
 
     @Test
-    public void testGetVideoBIdIncrementsViewsAndReturnsResponse() {
+    public void testGiveViewsAfterGettingVideoIncrementsViewsAndReturnsResponse() {
         UUID id = videoSample.getId();
         when(videoRepository.findById(id)).thenReturn(Optional.of(videoSample));
         when(videoRepository.save(any(Video.class))).thenReturn(videoSample);
 
-        VideoResponse response = videoService.getVideoBId(id);
+        VideoResponse response = videoService.giveViewsAfterGettingVideo(id);
 
         verify(videoRepository).findById(id);
         verify(videoRepository).save(videoSample);
@@ -205,11 +205,11 @@ public class VideoServiceTests {
 
 
     @Test
-    public void testGetVideoBId_VideoNotFound() {
+    public void testGiveViewsAfterGettingVideoBId_VideoNotFound() {
         UUID nonExistentId = UUID.randomUUID();
         when(videoRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> videoService.getVideoBId(nonExistentId));
+        assertThrows(NoSuchElementException.class, () -> videoService.giveViewsAfterGettingVideo(nonExistentId));
     }
 
 
@@ -335,7 +335,7 @@ public class VideoServiceTests {
         List<VideoResponse> result = videoService.FilterByDuration(duration, zeroLimit, offset);
 
         assertTrue(result.isEmpty());
-        verify(videoRepository).findAllByOrderByCreatedAtDesc(pageable);
+        verifyNoInteractions(videoRepository);
     }
 
 
@@ -368,7 +368,6 @@ public class VideoServiceTests {
         List<VideoResponse> result = videoService.getPopularVideos(negativeLimit);
 
         assertTrue(result.isEmpty());
-        verify(videoRepository).findAllByOrderByCreatedAtDesc(PageRequest.of(0, 0));
     }
 
 

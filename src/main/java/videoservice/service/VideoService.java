@@ -68,7 +68,7 @@ public class VideoService {
         }
     }
 
-    public VideoResponse getVideoBId(UUID id) {
+    public VideoResponse giveViewsAfterGettingVideo(UUID id) {
         Video video = videoRepository.findById(id).orElseThrow();
         video.setViews(video.getViews() + 1);
         videoRepository.save(video);
@@ -123,6 +123,9 @@ public class VideoService {
     }
 
     public List<VideoResponse> getPopularVideos(int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
         return videoRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit))
                 .stream()
                 .map(this::toResponse)
@@ -130,6 +133,9 @@ public class VideoService {
     }
 
     public List<VideoResponse> FilterByDuration(Long duration, int limit, int offset){
+        if (limit <= 0) {
+            return List.of();
+        }
         Pageable pageable = PageRequest.of(offset / limit, limit);
         return videoRepository.findAllByOrderByCreatedAtDesc(pageable)
                 .stream()
