@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import videoservice.DTO.request.VideoRequest;
 import videoservice.DTO.response.VideoResponse;
+import videoservice.service.MsgConsumer;
 import videoservice.service.VideoService;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class VideoController {
 
     private final VideoService videoService;
+    private final MsgConsumer msgConsumer;
 
     // Создать новое видео (upload)
     @PostMapping("/create-new-video")
@@ -82,4 +84,7 @@ public class VideoController {
     ) {
         return ResponseEntity.ok(videoService.getPopularVideos(limit));
     }
+
+
 }
+
