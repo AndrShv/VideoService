@@ -16,13 +16,10 @@ public class MsgConsumer {
 
     @Autowired
     private VideoRepository videoRepository;
-    @Value("${queue.name}")
-    private String queueName;
-
-
 
     @RabbitListener(queues = "video.create.queue")
     public void handleVideoCreate(VideoCreatingEvent event) {
+        System.out.println("Получено событие: " + event);
         Video video = new Video();
         video.setAuthorId(event.getAuthorId());
         video.setTitle(event.getTitle());

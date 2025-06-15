@@ -24,7 +24,7 @@ import java.util.Map;
 @Configuration
 public class RabbitMqConfig {
 
-    @Value("${queue.name}")
+    @Value("video.create.queue")
     private String queueName;
 
     @Value("${spring.rabbitmq.username}")
