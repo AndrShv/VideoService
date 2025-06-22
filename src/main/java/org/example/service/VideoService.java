@@ -1,13 +1,14 @@
-package videoservice.service;
+package org.example.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.event.VideoCreatingEvent;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import videoservice.DTO.request.VideoRequest;
-import videoservice.DTO.response.VideoResponse;
-import videoservice.entity.Video;
-import videoservice.repository.VideoRepository;
+import org.example.DTO.request.VideoRequest;
+import org.example.DTO.response.VideoResponse;
+import org.example.entity.Video;
+import org.example.repository.VideoRepository;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -19,6 +20,9 @@ public class VideoService {
 
     private final VideoRepository videoRepository;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private final MsgProducerToUserProfileService msgProducer;
+
+
 
 
     public VideoResponse createVideo(VideoRequest request, UUID authorId){
@@ -31,6 +35,16 @@ public class VideoService {
         video.setCategory(request.category());
         video.setAuthorId(authorId);
         videoRepository.save(video);
+        msgProducer.sendVideoCreatedEvent(new VideoCreatingEvent(
+                video.getAuthorId(),
+                video.getTitle(),
+                video.getDescription(),
+                video.getVideoUrl(),
+                video.getThumbnailUrl(),
+                video.getDuration(),
+                video.getCategory()
+        ));
+
         return toResponse(video);
     }
     public VideoResponse getVideoById(UUID id){
@@ -68,6 +82,13 @@ public class VideoService {
         }
     }
 
+    public VideoResponse giveViewsAfterGettingVideo(UUID id) {
+        Video video = videoRepository.findById(id).orElseThrow();
+        video.setViews(video.getViews() + 1);
+        videoRepository.save(video);
+        return toResponse(video);
+    }
+
 
     private VideoResponse toResponse(Video video) {
         return new VideoResponse(
@@ -84,5 +105,56 @@ public class VideoService {
                 video.getComments(),
                 video.getCreatedAt().format(formatter)
         );
+    }
+
+    public List<VideoResponse> getVideosByAuthor(UUID authorId) {
+        return videoRepository.findAllByAuthorId(authorId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public void deleteVideo(UUID id, UUID authorId) {
+        Video video = videoRepository.findById(id).orElseThrow();
+        if (!video.getAuthorId().equals(authorId)) {
+            throw new RuntimeException("You are not authorized to delete this video");
+        }
+        videoRepository.delete(video);
+    }
+
+    public void updateVideo(UUID id, VideoRequest request, UUID authorId) {
+        Video video = videoRepository.findById(id).orElseThrow();
+        if (!video.getAuthorId().equals(authorId)) {
+            throw new RuntimeException("You are not authorized to update this video");
+        }
+        video.setTitle(request.title());
+        video.setDescription(request.description());
+        video.setDuration(request.duration());
+        video.setVideoUrl(request.videoUrl());
+        video.setThumbnailUrl(request.thumbnailUrl());
+        video.setCategory(request.category());
+        videoRepository.save(video);
+    }
+
+    public List<VideoResponse> getPopularVideos(int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
+        return videoRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit))
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<VideoResponse> FilterByDuration(Long duration, int limit, int offset){
+        if (limit <= 0) {
+            return List.of();
+        }
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+        return videoRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .stream()
+                .filter(video -> video.getDuration() <= duration)
+                .map(this::toResponse)
+                .toList();
     }
 }

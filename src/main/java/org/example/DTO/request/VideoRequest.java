@@ -1,4 +1,4 @@
-package videoservice.DTO.request;
+package org.example.DTO.request;
 
 public record VideoRequest(
         String title,
