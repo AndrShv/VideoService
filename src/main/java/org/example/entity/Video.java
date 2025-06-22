@@ -51,5 +51,6 @@ public class Video {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+
     public Video() {}
 }
