@@ -1,4 +1,4 @@
-package videoservice.DTO.response;
+package org.example.DTO.response;
 
 import java.util.UUID;
 
