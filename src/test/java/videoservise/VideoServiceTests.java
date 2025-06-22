@@ -9,11 +9,11 @@ import org.mockito.*;
 import org.springframework.data.domain.*;
 import org.springframework.data.domain.PageImpl;
 
-import videoservice.DTO.request.VideoRequest;
-import videoservice.DTO.response.VideoResponse;
-import videoservice.entity.Video;
-import videoservice.repository.VideoRepository;
-import videoservice.service.VideoService;
+import org.example.DTO.request.VideoRequest;
+import org.example.DTO.response.VideoResponse;
+import org.example.entity.Video;
+import org.example.repository.VideoRepository;
+import org.example.service.VideoService;
 
 import java.time.LocalDateTime;
 import java.util.*;

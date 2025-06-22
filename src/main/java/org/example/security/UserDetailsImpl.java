@@ -1,4 +1,4 @@
-package videoservice.security;
+package org.example.security;
 
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

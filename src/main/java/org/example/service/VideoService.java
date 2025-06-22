@@ -1,13 +1,14 @@
-package videoservice.service;
+package org.example.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.event.VideoCreatingEvent;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import videoservice.DTO.request.VideoRequest;
-import videoservice.DTO.response.VideoResponse;
-import videoservice.entity.Video;
-import videoservice.repository.VideoRepository;
+import org.example.DTO.request.VideoRequest;
+import org.example.DTO.response.VideoResponse;
+import org.example.entity.Video;
+import org.example.repository.VideoRepository;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -19,6 +20,7 @@ public class VideoService {
 
     private final VideoRepository videoRepository;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private final MsgProducerToUserProfileService msgProducer;
 
 
 
@@ -33,6 +35,16 @@ public class VideoService {
         video.setCategory(request.category());
         video.setAuthorId(authorId);
         videoRepository.save(video);
+        msgProducer.sendVideoCreatedEvent(new VideoCreatingEvent(
+                video.getAuthorId(),
+                video.getTitle(),
+                video.getDescription(),
+                video.getVideoUrl(),
+                video.getThumbnailUrl(),
+                video.getDuration(),
+                video.getCategory()
+        ));
+
         return toResponse(video);
     }
     public VideoResponse getVideoById(UUID id){

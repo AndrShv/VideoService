@@ -1,4 +1,4 @@
-package videoservice.security;
+package org.example.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +11,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import videoservice.jwt.JwtAuthFilter;
-import videoservice.jwt.JwtUtil;
+import org.example.jwt.JwtAuthFilter;
+import org.example.jwt.JwtUtil;
 
 @Configuration
 @RequiredArgsConstructor

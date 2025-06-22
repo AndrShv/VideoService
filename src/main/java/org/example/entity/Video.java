@@ -1,4 +1,4 @@
-package videoservice.entity;
+package org.example.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

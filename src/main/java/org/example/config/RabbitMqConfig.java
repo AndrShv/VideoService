@@ -1,8 +1,9 @@
-package videoservice.config;
+package org.example.config;
 
 
 import lombok.Getter;
 import lombok.Setter;
+import org.example.event.VideoCreatingEvent;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -10,6 +11,7 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +26,7 @@ import java.util.Map;
 @Configuration
 public class RabbitMqConfig {
 
-    @Value("video.create.queue")
+    @Value("${queue.name}")
     private String queueName;
 
     @Value("${spring.rabbitmq.username}")
@@ -56,8 +58,9 @@ public class RabbitMqConfig {
 
     @Bean
     public Queue videoCreateQueue() {
-        return new Queue("video.create.queue" , true);
+        return new Queue("video.create.queue", true);
     }
+
 
     @Bean
     public Binding bindVideoCreateQueue() {
@@ -69,20 +72,15 @@ public class RabbitMqConfig {
 
     @Bean
     public Jackson2JsonMessageConverter jsonMessageConverter() {
-        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
-        DefaultClassMapper classMapper = new DefaultClassMapper();
-
-        Map<String, Class<?>> idClassMapping = new HashMap<>();
-        idClassMapping.put("org.example.event.VideoCreatingEvent", videoservice.event.VideoCreatingEvent.class);
-
-        classMapper.setIdClassMapping(idClassMapping);
-        converter.setClassMapper(classMapper);
-
-        return converter;
+        return new Jackson2JsonMessageConverter();
     }
 
-
-
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter());
+        return template;
+    }
 
 
 }

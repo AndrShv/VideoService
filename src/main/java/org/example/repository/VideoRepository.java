@@ -1,9 +1,9 @@
-package videoservice.repository;
+package org.example.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import videoservice.entity.Video;
+import org.example.entity.Video;
 
 import java.util.List;
 import java.util.UUID;
