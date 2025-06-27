@@ -1,6 +1,9 @@
 package org.example.config;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.event.VideoCreatingEvent;
@@ -14,6 +17,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,9 +75,12 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    public Jackson2JsonMessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+    public MessageConverter jsonMessageConverter() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        return new Jackson2JsonMessageConverter(mapper);
     }
+
 
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
@@ -81,6 +88,25 @@ public class RabbitMqConfig {
         template.setMessageConverter(jsonMessageConverter());
         return template;
     }
+
+    @Bean
+    public TopicExchange reactionExchange() {
+        return new TopicExchange("reaction.exchange");
+    }
+
+    @Bean
+    public Queue reactionQueue() {
+        return new Queue("reaction.queue", true);
+    }
+
+    @Bean
+    public Binding reactionBinding() {
+        return BindingBuilder
+                .bind(reactionQueue())
+                .to(reactionExchange())
+                .with("reaction.create");
+    }
+
 
 
 }

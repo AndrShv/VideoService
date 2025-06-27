@@ -45,6 +45,19 @@ public class Video {
     @Column(name = "likes", nullable = false)
     private Long likes = 0L;
 
+    @Column(name = "dislikes", nullable = false)
+    private Long dislikes = 0L;
+
+    @Column(name = "laughs", nullable = false)
+    private Long laughs = 0L;
+
+    @Column(name = "cries", nullable = false)
+    private Long cries = 0L;
+
+    @Column(name = "angries", nullable = false)
+    private Long angries = 0L;
+
+
     @Column(name = "comments", nullable = false)
     private Long comments = 0L;
 
