@@ -1,4 +1,4 @@
-package videoservice.entity;
+package org.example.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,7 +18,7 @@ public class Video {
     @GeneratedValue(generator = "UUID")
     private UUID id;
 
-    @Column(name = "title",unique = true,  nullable = false)
+    @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "description", length = 1000, nullable = false)
@@ -30,7 +30,7 @@ public class Video {
     @Column(name = "author_id", nullable = false)
     private UUID authorId;
 
-    @Column(name = "thumbnail_url", nullable = false, unique = true)
+    @Column(name = "thumbnail_url", nullable = false)
     private String thumbnailUrl;
 
     @Column(name = "duration", nullable = false)
@@ -45,11 +45,25 @@ public class Video {
     @Column(name = "likes", nullable = false)
     private Long likes = 0L;
 
+    @Column(name = "dislikes", nullable = false)
+    private Long dislikes = 0L;
+
+    @Column(name = "laughs", nullable = false)
+    private Long laughs = 0L;
+
+    @Column(name = "cries", nullable = false)
+    private Long cries = 0L;
+
+    @Column(name = "angries", nullable = false)
+    private Long angries = 0L;
+
+
     @Column(name = "comments", nullable = false)
     private Long comments = 0L;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
 
     public Video() {}
 }
