@@ -2,6 +2,7 @@ package org.example.DTO.response;
 
 import java.util.UUID;
 
+
 public record VideoResponse(
         UUID id,
         UUID authorId,
@@ -13,8 +14,14 @@ public record VideoResponse(
         String category,
         Long views,
         Long likes,
+        Long dislikes,
+        Long laughs,
+        Long cries,
+        Long angries,
         Long comments,
         String createdAt
-) {}
+) {
+
+}
 
 

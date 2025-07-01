@@ -108,5 +108,46 @@ public class RabbitMqConfig {
     }
 
 
+    @Bean
+    public TopicExchange pollExchange() {
+        return new TopicExchange("poll.exchange");
+    }
+
+    @Bean
+    public Queue pollCreatedQueue() {
+        return new Queue("poll.created.queue");
+    }
+
+    @Bean
+    public Binding pollCreatedBinding() {
+        return BindingBuilder
+                .bind(pollCreatedQueue())
+                .to(pollExchange())
+                .with("poll.created");
+    }
+
+
+
+    @Bean
+    public TopicExchange voteExchange() {
+        return new TopicExchange("vote.exchange");
+    }
+
+
+    @Bean
+    public Queue voteCreatesQueue() {
+        return new Queue("vote.create.queue");
+    }
+
+    @Bean
+    public Binding pollVotedBinding() {
+        return BindingBuilder
+                .bind(voteCreatesQueue())
+                .to(pollExchange())
+                .with("vote.created");
+    }
+
+
+
 
 }

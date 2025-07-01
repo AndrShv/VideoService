@@ -102,6 +102,10 @@ public class VideoService {
                 video.getCategory(),
                 video.getViews(),
                 video.getLikes(),
+                video.getDislikes(),
+                video.getLaughs(),
+                video.getCries(),
+                video.getAngries(),
                 video.getComments(),
                 video.getCreatedAt().format(formatter)
         );

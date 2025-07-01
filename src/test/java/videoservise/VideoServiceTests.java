@@ -3,6 +3,8 @@ package videoservise;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import org.example.event.VideoCreatingEvent;
+import org.example.service.MsgProducerToUserProfileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -22,6 +24,9 @@ public class VideoServiceTests {
 
     @Mock
     private VideoRepository videoRepository;
+
+    @Mock
+    private MsgProducerToUserProfileService msgProducer;
 
     @InjectMocks
     private VideoService videoService;
@@ -405,12 +410,12 @@ public class VideoServiceTests {
         existingVideo.setCategory("Old Category");
 
         VideoRequest updateRequest = new VideoRequest(
-            "New Title",
-            "New Description",
-            200L,
-            "http://new.video.url",
-            "http://new.thumbnail.url",
-            "New Category"
+                "New Title",
+                "New Description",
+                200L,
+                "http://new.video.url",
+                "http://new.thumbnail.url",
+                "New Category"
         );
 
         when(videoRepository.findById(videoId)).thenReturn(Optional.of(existingVideo));
@@ -439,12 +444,12 @@ public class VideoServiceTests {
         video.setAuthorId(authorId);
 
         VideoRequest request = new VideoRequest(
-            "Updated Title",
-            "Updated Description",
-            180L,
-            "http://updated-video.url",
-            "http://updated-thumbnail.url",
-            "Updated Category"
+                "Updated Title",
+                "Updated Description",
+                180L,
+                "http://updated-video.url",
+                "http://updated-thumbnail.url",
+                "Updated Category"
         );
 
         when(videoRepository.findById(videoId)).thenReturn(Optional.of(video));
@@ -452,5 +457,133 @@ public class VideoServiceTests {
         assertThrows(RuntimeException.class, () -> videoService.updateVideo(videoId, request, differentAuthorId));
 
         verify(videoRepository, never()).save(any(Video.class));
+    }
+
+
+    @Test
+    void createVideo_SendsEventToMsgProducer() {
+        VideoRequest request = new VideoRequest(
+                "Event Video",
+                "Event description",
+                300L,
+                "http://eventvideo.url",
+                "http://eventthumbnail.url",
+                "Education"
+        );
+        UUID authorId = UUID.randomUUID();
+
+        MsgProducerToUserProfileService msgProducer = mock(MsgProducerToUserProfileService.class);
+        VideoService serviceWithProducer = new VideoService(videoRepository, msgProducer);
+
+        when(videoRepository.save(any(Video.class))).thenAnswer(invocation -> {
+            Video v = invocation.getArgument(0);
+            v.setId(UUID.randomUUID());
+            v.setCreatedAt(LocalDateTime.now());
+            return v;
+        });
+
+        serviceWithProducer.createVideo(request, authorId);
+
+        verify(msgProducer).sendVideoCreatedEvent(any(VideoCreatingEvent.class));
+    }
+
+    @Test
+    void getFeed_ReturnsEmptyListWhenNoVideos() {
+        int limit = 5;
+        int offset = 0;
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+
+        when(videoRepository.findAllByOrderByCreatedAtDesc(pageable)).thenReturn(new PageImpl<>(Collections.emptyList()));
+
+        List<VideoResponse> feed = videoService.getFeed(limit, offset);
+
+        assertTrue(feed.isEmpty());
+    }
+
+    @Test
+    void search_ReturnsEmptyListWhenNoMatch() {
+        String title = "nonexistent";
+        String category = "unknown";
+        int limit = 5;
+        int offset = 0;
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+
+        when(videoRepository.findByTitleContainingIgnoreCaseAndCategoryIgnoreCase(title, category, pageable))
+                .thenReturn(new PageImpl<>(Collections.emptyList()));
+
+        List<VideoResponse> results = videoService.search(title, category, limit, offset);
+
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void giveViewsAfterGettingVideo_DoesNotOverflowOnMaxValue() {
+        UUID id = videoSample.getId();
+        videoSample.setViews(Long.MAX_VALUE);
+        when(videoRepository.findById(id)).thenReturn(Optional.of(videoSample));
+        when(videoRepository.save(any(Video.class))).thenReturn(videoSample);
+
+        VideoResponse response = videoService.giveViewsAfterGettingVideo(id);
+
+        assertEquals(Long.MIN_VALUE, videoSample.getViews());
+        assertEquals(Long.MIN_VALUE, response.views());
+    }
+
+    @Test
+    void deleteVideo_ThrowsWhenVideoNotFound() {
+        UUID videoId = UUID.randomUUID();
+        UUID authorId = UUID.randomUUID();
+
+        when(videoRepository.findById(videoId)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> videoService.deleteVideo(videoId, authorId));
+    }
+
+    @Test
+    void updateVideo_ThrowsWhenVideoNotFound() {
+        UUID videoId = UUID.randomUUID();
+        UUID authorId = UUID.randomUUID();
+        VideoRequest request = new VideoRequest("Title", "Desc", 100L, "url", "thumb", "cat");
+
+        when(videoRepository.findById(videoId)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> videoService.updateVideo(videoId, request, authorId));
+    }
+
+    @Test
+    void getVideosByAuthor_ReturnsEmptyListWhenNoVideos() {
+        UUID authorId = UUID.randomUUID();
+        when(videoRepository.findAllByAuthorId(authorId)).thenReturn(Collections.emptyList());
+
+        List<VideoResponse> result = videoService.getVideosByAuthor(authorId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getPopularVideos_ReturnsEmptyListWhenNoVideos() {
+        int limit = 3;
+        when(videoRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit))).thenReturn(Page.empty());
+
+        List<VideoResponse> result = videoService.getPopularVideos(limit);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void FilterByDuration_ReturnsEmptyListWhenNoVideosMatch() {
+        Long duration = 50L;
+        int limit = 10;
+        int offset = 0;
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+
+        Video longVideo = new Video();
+        longVideo.setDuration(200L);
+
+        when(videoRepository.findAllByOrderByCreatedAtDesc(pageable)).thenReturn(new PageImpl<>(List.of(longVideo)));
+
+        List<VideoResponse> result = videoService.FilterByDuration(duration, limit, offset);
+
+        assertTrue(result.isEmpty());
     }
 }
